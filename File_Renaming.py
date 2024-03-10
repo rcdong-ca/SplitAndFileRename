@@ -267,6 +267,7 @@ class MusicDir:
 
                 os.rename(src=os.path.join(self.dirPath, fileName), dst=os.path.join(self.dirPath, self.tableOfContents.getFileName(id) ))
 
+
     
 if __name__ == "__main__":
     

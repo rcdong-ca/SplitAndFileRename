@@ -4,29 +4,34 @@ import re
 import File_Renaming as FR
 from ffcuesplitter.cuesplitter import FFCueSplitter
 
+def SubstringAfter(s: str , delim: str):
+    return s.partition(delim)[2]
 
 class TrackData:
     Title = ""
     Performer = ""
-    Index00 = None # Hidden track
-    Index01 = None # Start time of the track
+    Index00 = "" # Hidden track
+    Index01 = "" # Start time of the track
 
-    def __init__(self, title, performer, index00=None, index01=None) -> None:
+    def __init__(self, title, performer, index00="", index01="") -> None:
         self.Title = title
         self.Performer = performer
         self.Index00 = index00
         self.Index01 = index01
         pass
-
-def SubstringAfter(s: str , delim: str):
-    return s.partition(delim)[2]
-
+    
+    def setTitle(self, title):
+        self.Title = title
+    
+    def setPerformer(self, performer):
+        self.Performer = performer
+    
 
 class CueFile:
 
     AlbumTitle = ""
     FileName = ""
-    TrackList = [TrackData]
+    TrackList = []
     srcPath = ""
     Genre = ""
     Date = ""
@@ -77,8 +82,6 @@ class CueFile:
             
             trackData = TrackData(trackTitle, trackPerformer, index00, index01)
             self.TrackList.append(trackData)
-
-            print(f"trackTitle: {trackTitle}\ntrackPerformer: {trackPerformer}")
             line = f.readline()
         pass
 
@@ -95,33 +98,52 @@ class CueFile:
         
         trackId = 1
         for track in self.TrackList:
-            f.write(f"\tTRACK {trackId:02d} AUDIO\n")
-            f.write(f"\t\tTITLE \"{track.Title}\"\n")
-            f.write(f"\t\tPERFORMER \"{track.Performer}\"\n")
-            if (track.Index00 != None):
-                f.write(f"\t\tINDEX 00 {track.Index00}\n")   
-            f.write(f"\t\tINDEX 01 {track.Index01}\n")
+            f.write(f"  TRACK {trackId:02d} AUDIO\n")
+            f.write(f"    TITLE \"{track.Title}\"\n")
+            f.write(f"    PERFORMER \"{track.Performer}\"\n")
+            if (track.Index00 != ""):
+                f.write(f"    INDEX 00 {track.Index00}\n")   
+            f.write(f"    INDEX 01 {track.Index01}\n")
+            trackId += 1
         f.write("\n")
+
     
-    
-    
+    def setTrackData(self, id, title = "", performer = ""):
+        id = id - 1
+        if title != "":
+            self.TrackList[id].setTitle(title)
+        
+        if performer != "":
+            self.TrackList[id].setPerformer(performer)
 
 
 if __name__ == "__main__":
     cwd = os.getcwd()
-    testDir = os.path.join(cwd, "test")
-    cuePath = ""
-    for file in os.listdir(testDir):
-        cuePath = os.path.join(testDir, file)
-        break
-    
-    cf = CueFile(cuePath)
 
-    
-    # s = ""
-    # with open(cuePath, encoding='utf-8', errors='replace') as f:
-    #    for line in f:
-    #        print(line)
+    targetDir = os.path.join(cwd,"群星《2024试听小屋系列(115)》[FLAC]")
+    targetFile = os.path.join(targetDir,"群星《2024试听小屋系列(115)》[FLAC].cue")
 
-    # getData = FFCueSplitter(filename=cuePath, dry=True)
+    targetTXTFile = os.path.join(targetDir, "群星《2024试听小屋系列(115)》[FLAC].txt")
+
+    cueCopy = os.path.join(targetDir, "test_COPY.cue")
+    
+    cueFile = CueFile(targetFile)
+    toc = FR.TableOfContents(targetTXTFile)
+
+    # # update cuefile metadata with what was obtained in TableOfContents
+
+    cueFile.AlbumTitle = toc.albumName
+    cueFile.FileName = "群星《2024试听小屋系列(115)》[FLAC].flac"
+    cueFile.Performer = toc.albumArtist
+
+    # update the track data
+    trackLen = len(cueFile.TrackList)
+    for i in range(trackLen):
+        cueFile.TrackList[i].setTitle(toc.getTitle(i+1))
+        cueFile.TrackList[i].setPerformer(toc.getArtist(i+1))
+
+    cueFile.writeToCueFile(cueCopy)
+
+    getData = FFCueSplitter(filename=cueCopy, dry=True)
+    # print(getData.audiotracks())
     

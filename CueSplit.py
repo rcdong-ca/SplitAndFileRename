@@ -2,7 +2,6 @@ import os
 import MusicDirectory as md
 import sys
 
-from ffcuesplitter.cuesplitter import FFCueSplitter
 from ffcuesplitter.user_service import FileSystemOperations
 
 

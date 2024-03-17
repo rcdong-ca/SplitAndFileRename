@@ -55,6 +55,8 @@ class MusicDir:
                 elif (file.endswith(".jpg") is True or file.endswith(".png")) and (file.lower()=="cover.jpg" or file.lower() == "cover.png"):
                     self.coverPath = os.path.join(self.dirPath, file)
 
+            assert self.majorFlacPath is not None, "main flac file was not found. This must exist"
+
             # check if the cover is in subdirectory
             if (self.coverPath is None):
                 for root, dirs, files in os.walk(self.dirPath):
@@ -265,8 +267,8 @@ class CueFile:
 
 
     def __init__(self, path) -> None:
-        srcPath = path
-        f = open(srcPath, "r", encoding="utf-8", errors="replace")
+        self.srcPath = path
+        f = open(self.srcPath, "r", encoding="utf-8", errors="replace")
         line = f.readline()
 
         # parse the cue file for metadata
@@ -314,24 +316,24 @@ class CueFile:
         Input:
             path (str): target .cue file path
         """
-        f = open(path, "w+", encoding="utf-8")
+        with open(path, "w+", encoding="utf-8") as f:
+            f.write(f"REM GENRE {self.Genre}\n")
+            f.write(f"REM DATE {self.Date}\n")
+            f.write(f"PERFORMER \"{self.Performer}\"\n")
+            f.write(f"TITLE \"{self.AlbumTitle}\"\n")
+            f.write(f"FILE \"{self.FileName}\" WAVE\n")
+            
+            trackId = 1
+            for track in self.TrackList:
+                f.write(f"  TRACK {trackId:02d} AUDIO\n")
+                f.write(f"    TITLE \"{track.Title}\"\n")
+                f.write(f"    PERFORMER \"{track.Performer}\"\n")
+                if (track.Index00 != ""):
+                    f.write(f"    INDEX 00 {track.Index00}\n")   
+                f.write(f"    INDEX 01 {track.Index01}\n")
+                trackId += 1
+            f.write("\n")
 
-        f.write(f"REM GENRE {self.Genre}\n")
-        f.write(f"REM DATE {self.Date}\n")
-        f.write(f"PERFORMER \"{self.Performer}\"\n")
-        f.write(f"TITLE \"{self.AlbumTitle}\"\n")
-        f.write(f"FILE \"{self.FileName}\" WAVE\n")
-        
-        trackId = 1
-        for track in self.TrackList:
-            f.write(f"  TRACK {trackId:02d} AUDIO\n")
-            f.write(f"    TITLE \"{track.Title}\"\n")
-            f.write(f"    PERFORMER \"{track.Performer}\"\n")
-            if (track.Index00 != ""):
-                f.write(f"    INDEX 00 {track.Index00}\n")   
-            f.write(f"    INDEX 01 {track.Index01}\n")
-            trackId += 1
-        f.write("\n")
 
     
     def setTrackData(self, id, title = "", performer = ""):

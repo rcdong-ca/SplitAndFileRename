@@ -16,3 +16,13 @@ def getFirstNumSeqFromStr(fileName: str) -> int:
     if s == "":
         return -1
     return int(s)
+
+def CheckFileUtf8(path):
+    try:
+        print("path: ", path)
+        f = open(path, mode="r")
+        data = f.read()
+        print("data: ", data)
+        return True
+    except UnicodeDecodeError:
+        return False

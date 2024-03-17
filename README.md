@@ -11,8 +11,7 @@ To use it:
 
 The music files downloaded sometimes have an unkown encoding (not utf-8), so the metadata is lost. However, some downloads provide a seperate .txt file that contains the relevent information in utf-8 encoding. This script parses the information and applies it on
 to the already split flac files.
-
-eg. The sample.txt file provided
+Refer to the sampleTXT and sampleCUE files provided to see the problem
 
 
 Before writing this script, I have hundereds of directories filled with this, and I am too lazy to change it manually, so this automates it.

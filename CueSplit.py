@@ -1,6 +1,7 @@
 import os
 import MusicDirectory as md
 import sys
+import utilities as util
 
 from ffcuesplitter.user_service import FileSystemOperations
 
@@ -8,48 +9,64 @@ from ffcuesplitter.user_service import FileSystemOperations
 if __name__ == "__main__":
 
     cwd = os.getcwd()
-    targetDir = os.path.join(cwd, sys.argv[1])
-    dirName = sys.argv[1].rstrip(" \"/\\").lstrip(".\\/")
+    musicDirectories = []
 
-    # check if targetDir is legitimate
-    assert os.path.exists(targetDir) == True
+    if sys.argv[1] == "batch":
+        for dir in os.listdir(cwd):
+            try:
+                targetDir = os.path.join(cwd, dir)
+                dirName = dir
+                musicDir = md.MusicDir(targetDir, dirName=dirName)
+                musicDirectories.append(musicDir)
+            except Exception as e:
+                print(f"{dir} has failed: ", e)
 
-    musicDir = md.MusicDir(targetDir, dirName=dirName)
-    cueCopy = os.path.join(targetDir, "test_COPY.cue")
-
-    cueFile = md.CueFile(musicDir.cuePath)
-    toc = md.TableOfContents(musicDir.tableOfContentsPath)
-
-    # We should only change cuefile metadata with what was obtained in TableOfContents
-    # when the cue file contains data that is not utf-8 encoding
-
-    cueFile.AlbumTitle = toc.albumName
-    cueFile.FileName = musicDir.dirName + ".flac"
-    cueFile.Performer = toc.albumArtist
-
-    # update the track data
-    trackLen = len(cueFile.TrackList)
-    for i in range(trackLen):
-        cueFile.TrackList[i].setTitle(toc.getTitle(i+1))
-        cueFile.TrackList[i].setPerformer(toc.getArtist(i+1))
-
-    cueFile.writeToCueFile(cueCopy)
-
-    # set the cover picture for the major flac file
-    try:
-        targetFlacFile = md.FLACDataDef(musicDir.majorFlacPath, musicDir.coverPath)
-        targetFlacFile.updateMetaData()
-
-    except AssertionError as msg:
-        print(msg)
-
-    # split the major flac file into tracks
-    split = FileSystemOperations(filename=cueCopy, outputdir=targetDir, outputformat="flac", dry=False, overwrite="ask")
-    if split.kwargs['dry']:
-        split.dry_run_mode()
     else:
-        overwr = split.check_for_overwriting()
-        if not overwr:
-            split.work_on_temporary_directory()
+        # single directory process pass as parameter
+        targetDir = os.path.join(cwd, sys.argv[1])
+        dirName = sys.argv[1].rstrip(" \"/\\").lstrip(".\\/")
+        musicDir = md.MusicDir(targetDir, dirName=dirName)
+        musicDirectories.append(musicDir)
+
+    # process all the music directories
+    for musicDir in musicDirectories:
+        print("\nWorking on ", musicDir.dirName)
+        cueFile = md.CueFile(musicDir.cuePath)
+
+        # We should only change cuefile metadata with what was obtained in TableOfContents
+        # when the cue file contains data that is not utf-8 encoding
+        if util.CheckFileUtf8(cueFile.srcPath) is False:
+            toc = md.TableOfContents(musicDir.tableOfContentsPath)
+            cueCopy = os.path.join(musicDir.dirPath, "test_COPY.cue")
+            cueFile.AlbumTitle = toc.albumName
+            cueFile.FileName = musicDir.dirName + ".flac"
+            cueFile.Performer = toc.albumArtist
+
+            # update the track data
+            trackLen = len(cueFile.TrackList)
+            for i in range(trackLen):
+                cueFile.TrackList[i].setTitle(toc.getTitle(i+1))
+                cueFile.TrackList[i].setPerformer(toc.getArtist(i+1))
+
+            cueFile.writeToCueFile(cueCopy)
+            cueFile.srcPath = cueCopy
+
+        # set the cover picture for the major flac file
+        try:
+            targetFlacFile = md.FLACDataDef(musicDir.majorFlacPath, musicDir.coverPath)
+            targetFlacFile.updateMetaData()
+
+        except Exception as msg:
+            print("failed to add picture:", msg)
+
+        # split the major flac file into tracks
+        print("cuePath, ", cueFile.srcPath)
+        split = FileSystemOperations(filename=cueFile.srcPath, outputdir=targetDir, outputformat="flac", dry=False, overwrite="never")
+        if split.kwargs['dry']:
+            split.dry_run_mode()
+        else:
+            overwr = split.check_for_overwriting()
+            if not overwr:
+                split.work_on_temporary_directory()
  
     

@@ -1,7 +1,5 @@
 # SplitAndFileRename
 
-TODO:: add the executable for windows...
-
 ## Objective: 
 The goal of this project is to automate Cue split operation and Rename existing tracks with utf-8 encoding meta data that comes from a seperate .txt file when I download music. Often times the foreign music I have utilizes an unknown encoding for the meta data. After splitting, I am left with a bunch of garbage texts. Luckily the downloads carry a .txt file that contains the utf-8 version of the meta data. These scripts essentially parses the .txt file and gathers the information and changes the .flac file meta data accordingly. Here is an example of what I am talking about
 
@@ -94,7 +92,7 @@ To use it:
 
 ---
 
-## Required If you want do not want to use the provided executables...
+## Required:
 1. ffpmeg  https://ffmpeg.org/download.html
 2. https://github.com/jeanslack/FFcuesplitter (python3 -m pip install ffcuesplitter)
    

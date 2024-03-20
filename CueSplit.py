@@ -2,6 +2,8 @@ import os
 import MusicDirectory as md
 import sys
 import utilities as util
+import signal
+import time
 
 from ffcuesplitter.user_service import FileSystemOperations
 
@@ -10,6 +12,9 @@ if __name__ == "__main__":
 
     cwd = os.getcwd()
     musicDirectories = []
+    
+    exitSignal = util.SignalDetect()
+    signal.signal(signal.SIGINT, exitSignal.SignalHandler)
 
     if sys.argv[1] == "batch":
         for dir in os.listdir(cwd):
@@ -30,7 +35,12 @@ if __name__ == "__main__":
 
     # process all the music directories
     for musicDir in musicDirectories:
+        if (exitSignal.sigIntFlag is True):
+            # detected Ctrl+C previously, exit now
+            print("Ctrl + C detected, exiting now")
+            exit(0)
         print("\nWorking on ", musicDir.dirName)
+        time.sleep(5.0)
         cueFile = md.CueFile(musicDir.cuePath)
 
         # We should only change cuefile metadata with what was obtained in TableOfContents
@@ -60,7 +70,6 @@ if __name__ == "__main__":
             print("failed to add picture:", msg)
 
         # split the major flac file into tracks
-        print("cuePath, ", cueFile.srcPath)
         split = FileSystemOperations(filename=cueFile.srcPath, outputdir=targetDir, outputformat="flac", dry=False, overwrite="never")
         if split.kwargs['dry']:
             split.dry_run_mode()

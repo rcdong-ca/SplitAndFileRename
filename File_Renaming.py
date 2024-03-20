@@ -1,13 +1,19 @@
 import os
 import time
 import json
+import signal
 import MusicDirectory as md
-    
+import utilities as util
+
 if __name__ == "__main__":
 
     # Get the current working directory
     path = os.getcwd()
     # Print the current working directory
+
+    # set up exit signal
+    exitSignal = util.SignalDetect()
+    signal.signal(signal.SIGINT, exitSignal.SignalHandler)
 
     """
     With batch processing, we may encounter failures for certain directories or we may have
@@ -24,6 +30,9 @@ if __name__ == "__main__":
 
     # iterate over the sub-directories within our working directory
     for dir in os.listdir(path):
+        if (exitSignal.sigIntFlag is True):
+            print("Ctrl + C detected, exiting now")
+            exit(0)
         try:
             if os.path.isdir(os.path.join(path,dir) ) is False:
                 continue

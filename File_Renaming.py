@@ -9,6 +9,11 @@ if __name__ == "__main__":
     path = os.getcwd()
     # Print the current working directory
 
+    """
+    With batch processing, we may encounter failures for certain directories or we may have
+    new music directories that has been split already. We do not want to change files that have been
+    processed successfuly before. The Json file we create will help us track what files don't need to be processed again
+    """
     checkedDir = {}
     failedMessage = {}
     # obtain checkedDir data if it exists
@@ -17,6 +22,7 @@ if __name__ == "__main__":
         with open(jsonPath, encoding="utf-8") as f:
             checkedDir = json.load(f)
 
+    # iterate over the sub-directories within our working directory
     for dir in os.listdir(path):
         try:
             if os.path.isdir(os.path.join(path,dir) ) is False:

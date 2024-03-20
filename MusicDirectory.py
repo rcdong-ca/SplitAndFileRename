@@ -186,8 +186,10 @@ class FLACDataDef:
         self.srcPath = filePath
 
     def JPEGSaveWithTargetSize(self, filePath, target=500000):
-        """Save the image as JPEG with the given name at best quality that makes less than "target" bytes.
-        Thanks to March Setchell for provided answer
+        """
+        Compresses the provided image to be less than 5MB. Pictures that are too large cannot attach due to .flac file
+
+        Thanks to March Setchell for providing a binear search compression methodlogy
         https://stackoverflow.com/questions/52259476/how-to-reduce-a-jpeg-size-to-a-desired-size
 
         Input:
@@ -195,7 +197,9 @@ class FLACDataDef:
             target (int): desired size of file in bytes
         
         Return:
-            buffer
+            buffer (io.BytesIO): buffer that contains the image after compression
+            width (int): pixel width of the image
+            height (int): pixel height of the image
         """
         myImage = Image.open(filePath)
         # Min and Max quality
@@ -231,12 +235,12 @@ class FLACDataDef:
 """Following classes will used for cue splitting"""
 
 """
-Represents necessary track information found in the .cue file
+Represents the necessary track information found in the .cue file
 """
 class TrackData:
-    Title = ""
+    Title = "" 
     Performer = ""
-    Index00 = "" # Hidden track
+    Index00 = "" # Hidden track (Generally not needed)
     Index01 = "" # Start time of the track
 
     def __init__(self, title, performer, index00="", index01="") -> None:
@@ -259,7 +263,7 @@ into its tracks
 class CueFile:
     AlbumTitle = ""
     FileName = ""
-    TrackList = []      # holds TrackData, which carries the metadata of each track
+    TrackList = []      # List TrackData, which carries the metadata of each track
     srcPath = ""
     Genre = ""
     Date = ""

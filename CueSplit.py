@@ -20,11 +20,13 @@ if __name__ == "__main__":
         for dir in os.listdir(cwd):
             try:
                 targetDir = os.path.join(cwd, dir)
+                if (os.path.isdir(targetDir)) is False:
+                    continue
                 dirName = dir
                 musicDir = md.MusicDir(targetDir, dirName=dirName)
                 musicDirectories.append(musicDir)
             except Exception as e:
-                print(f"{dir} has failed: ", e)
+                print(f"{dir} does not meet the requirement to be split ", e)
 
     else:
         # single directory process pass as parameter
@@ -40,7 +42,6 @@ if __name__ == "__main__":
             print("Ctrl + C detected, exiting now")
             exit(0)
         print("\nWorking on ", musicDir.dirName)
-        time.sleep(5.0)
         cueFile = md.CueFile(musicDir.cuePath)
 
         # We should only change cuefile metadata with what was obtained in TableOfContents
@@ -70,7 +71,7 @@ if __name__ == "__main__":
             print("failed to add picture:", msg)
 
         # split the major flac file into tracks
-        split = FileSystemOperations(filename=cueFile.srcPath, outputdir=targetDir, outputformat="flac", dry=False, overwrite="never")
+        split = FileSystemOperations(filename=cueFile.srcPath, outputdir=musicDir.dirPath, outputformat="flac", dry=False, overwrite="ask")
         if split.kwargs['dry']:
             split.dry_run_mode()
         else:

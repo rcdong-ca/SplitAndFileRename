@@ -36,7 +36,7 @@ class MusicDir:
                 elif file.endswith(".cue"):
                     self.cuePath = os.path.join(path, file)
 
-            assert self.cuePath is not None or self.tableOfContentsPath is not None, ".cue and .txt file was not detected. This file must exist"
+            assert self.cuePath is not None and self.tableOfContentsPath is not None, ".cue and .txt file was not detected. This file must exist"
 
             # create the flacList if it is split
             for file in os.listdir(path):

@@ -22,10 +22,8 @@ def getFirstNumSeqFromStr(fileName: str) -> int:
 
 def CheckFileUtf8(path):
     try:
-        print("path: ", path)
         f = open(path, mode="r")
         data = f.read()
-        print("data: ", data)
         return True
     except UnicodeDecodeError:
         return False
